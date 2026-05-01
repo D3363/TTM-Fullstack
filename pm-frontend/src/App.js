@@ -38,10 +38,9 @@ function App() {
   // 2. DATA FETCHING 
   // ==========================================
   useEffect(() => {
-    if (token) {
       fetchAllData();
-    }
-  }, [token]);
+    }, [fetchAllData]);
+  
 
   const fetchAllData = async () => {
     try {
