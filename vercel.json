@@ -1,0 +1,15 @@
+{
+  "builds": [
+    {
+      "src": "pm-frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "build" }
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/pm-frontend/index.html"
+    }
+  ]
+}
