@@ -37,9 +37,14 @@ function App() {
   // ==========================================
   // 2. DATA FETCHING 
   // ==========================================
+  // 2. DATA FETCHING 
+  // ==========================================
   useEffect(() => {
+    if (token) {
       fetchAllData();
-    }, [fetchAllData]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
   
 
   const fetchAllData = async () => {
