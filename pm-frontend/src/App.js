@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+ import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 
 function App() {
@@ -35,19 +35,11 @@ function App() {
   const [newTaskDate, setNewTaskDate] = useState('');
 
   // ==========================================
-  // 2. DATA FETCHING 
+  // 2. DATA FETCHING (Defined BEFORE useEffect)
   // ==========================================
-  // 2. DATA FETCHING 
-  // ==========================================
-  useEffect(() => {
-    if (token) {
-      fetchAllData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
-  
+  const fetchAllData = useCallback(async () => {
+    if (!token) return;
 
-  const fetchAllData = async () => {
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       
@@ -68,8 +60,14 @@ function App() {
         const userRes = await fetch(`${API_URL}/api/users`, { headers });
         if (userRes.ok) setUsers(await userRes.json());
       }
-    } catch (err) { console.error("Failed to fetch data"); }
-  };
+    } catch (err) { 
+      console.error("Failed to fetch data", err); 
+    }
+  }, [token, role, API_URL]);
+
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   // ==========================================
   // 3. ACTIONS
@@ -148,7 +146,7 @@ function App() {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status: newStatus })
       });
-      fetchAllData(); // Refresh to update stats and lists instantly
+      fetchAllData();
     } catch (err) { console.error("Failed to update status"); }
   };
 
@@ -211,10 +209,9 @@ function App() {
         </div>
       </div>
 
-      {/* ADMIN CONTROLS: Projects & Tasks */}
+      {/* ADMIN CONTROLS */}
       {role === 'Admin' && (
         <div style={{ display: 'flex', gap: '20px', marginTop: '30px' }}>
-          {/* Create Project Form */}
           <div style={{ flex: 1, background: '#e9ecef', padding: '20px', borderRadius: '8px' }}>
             <h4>Create Project</h4>
             <form onSubmit={handleCreateProject} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -224,22 +221,18 @@ function App() {
             </form>
           </div>
 
-          {/* Create Task Form */}
           <div style={{ flex: 1, background: '#e9ecef', padding: '20px', borderRadius: '8px' }}>
             <h4>Assign New Task</h4>
             <form onSubmit={handleCreateTask} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <input type="text" placeholder="Task Title" value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} required style={{ padding: '8px' }} />
-              
               <select value={newTaskProject} onChange={e => setNewTaskProject(e.target.value)} required style={{ padding: '8px' }}>
                 <option value="">Select Project...</option>
                 {projects.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
               </select>
-
               <select value={newTaskAssignee} onChange={e => setNewTaskAssignee(e.target.value)} required style={{ padding: '8px' }}>
                 <option value="">Assign to Member...</option>
                 {users.map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
               </select>
-
               <input type="date" value={newTaskDate} onChange={e => setNewTaskDate(e.target.value)} required style={{ padding: '8px' }} />
               <button type="submit" style={{ padding: '8px', background: '#28a745', color: 'white', border: 'none', cursor: 'pointer' }}>Assign Task</button>
             </form>
@@ -247,7 +240,7 @@ function App() {
         </div>
       )}
 
-      {/* TASK LIST (For Everyone) */}
+      {/* TASK LIST */}
       <h3 style={{ marginTop: '40px' }}>{role === 'Admin' ? 'All Assigned Tasks' : 'My Tasks'}</h3>
       {tasks.length === 0 ? <p>No tasks found.</p> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -261,8 +254,6 @@ function App() {
                   Due: {new Date(task.dueDate).toLocaleDateString()}
                 </p>
               </div>
-              
-              {/* STATUS DROPDOWN */}
               <select 
                 value={task.status} 
                 onChange={(e) => handleStatusChange(task._id, e.target.value)}
@@ -277,7 +268,6 @@ function App() {
           ))}
         </div>
       )}
-
     </div>
   );
 }
